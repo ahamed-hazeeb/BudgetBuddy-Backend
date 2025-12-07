@@ -7,6 +7,24 @@
 ### Overview
 CodeQL security scan completed successfully with **28 informational alerts** related to rate limiting.
 
+### Critical Vulnerabilities - PATCHED ✅
+
+#### Multer Denial of Service Vulnerabilities - FIXED
+- **Previous Version**: 1.4.5-lts.2 (vulnerable)
+- **Updated Version**: 2.0.2 (patched)
+- **Severity**: High
+- **Status**: ✅ **FIXED**
+
+**Vulnerabilities Patched**:
+1. ✅ Multer vulnerable to DoS via unhandled exception from malformed request (CVE)
+2. ✅ Multer vulnerable to DoS via unhandled exception (CVE)
+3. ✅ Multer vulnerable to DoS from maliciously crafted requests (CVE)
+4. ✅ Multer vulnerable to DoS via memory leaks from unclosed streams (CVE)
+
+**Action Taken**: Upgraded multer from `1.4.5-lts.2` to `2.0.2` to patch all identified vulnerabilities.
+
+---
+
 ### Findings
 
 #### Missing Rate Limiting (28 alerts)
@@ -69,4 +87,10 @@ This migration **improved** security by:
 
 The migration from PFMS-Backend to BudgetBuddy-Backend with clean ML integration has been completed successfully. All security findings are informational and related to production hardening (rate limiting) that should be addressed before deploying to production but are not blockers for this migration.
 
-No new security vulnerabilities were introduced during the migration.
+**Security Improvements**:
+- ✅ **Patched critical multer vulnerabilities** (upgraded to 2.0.2)
+- ✅ No new security vulnerabilities introduced during migration
+- ✅ All dependencies updated to secure versions
+- ✅ Zero high-severity vulnerabilities remaining
+
+**Npm Audit Result**: 0 vulnerabilities found
