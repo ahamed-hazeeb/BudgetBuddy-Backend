@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             id="Definitions_1"
+             targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="FuturePlanningProcess" isExecutable="true">
+    <startEvent id="StartEvent" />
+    <sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="task1" />
+    <serviceTask id="task1" name="Task 1" implementation="task1" />
+    <sequenceFlow id="Flow2" sourceRef="task1" targetRef="EndEvent" />
+    <endEvent id="EndEvent" />
+  </process>
+</definitions>
