@@ -21,6 +21,8 @@ const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, config.JWT_SECRET);
     
     // Normalize user ID field (handle both 'id' and 'user_id' from token)
+    // Both fields are provided for backward compatibility with different
+    // controllers that may use either req.user.id or req.user.user_id
     req.user = {
       id: decoded.id || decoded.user_id,
       user_id: decoded.user_id || decoded.id
@@ -62,7 +64,7 @@ const optionalAuth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
     
-    // Normalize user ID field
+    // Normalize user ID field (both fields provided for backward compatibility)
     req.user = {
       id: decoded.id || decoded.user_id,
       user_id: decoded.user_id || decoded.id
