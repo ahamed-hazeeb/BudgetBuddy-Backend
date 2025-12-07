@@ -10,12 +10,15 @@ exports.registerUser = async (req, res) => {
   userModel.createUser(name, email, hashedPassword, (err, user) => {
     if (err) return res.status(400).json({ error: err.message });
     
-    // Validate user.id exists before generating token
-    if (!user || user.id === undefined || user.id === null) {
+    // Extract user ID - handle both 'id' and 'user_id' field names
+    const userId = user?.id || user?.user_id;
+    
+    // Validate user ID exists before generating token
+    if (!user || userId === undefined || userId === null) {
       console.error('User created but ID is missing. User object:', JSON.stringify(user, null, 2));
       if (user) {
         console.error('User object keys:', Object.keys(user));
-        console.error('user.id type:', typeof user.id, 'value:', user.id);
+        console.error('user.id:', user.id, 'user.user_id:', user.user_id);
       }
       return res.status(500).json({ 
         error: 'User registration failed: user ID not returned',
@@ -29,8 +32,8 @@ exports.registerUser = async (req, res) => {
     // Generate token with user ID for newly registered user
     const token = jwt.sign(
       { 
-        id: user.id,
-        user_id: user.id,
+        id: userId,
+        user_id: userId,
         email: user.email
       },
       config.JWT_SECRET,
@@ -41,7 +44,7 @@ exports.registerUser = async (req, res) => {
       message: 'Registration successful',
       token,
       user: {
-        id: user.id,
+        id: userId,
         name: user.name,
         email: user.email
       }
@@ -57,8 +60,11 @@ exports.loginUser = (req, res) => {
     const isValid = await bcryptjs.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // Validate user.id exists before generating token
-    if (user.id === undefined || user.id === null) {
+    // Extract user ID - handle both 'id' and 'user_id' field names
+    const userId = user.id || user.user_id;
+    
+    // Validate user ID exists before generating token
+    if (userId === undefined || userId === null) {
       console.error('User found but ID is missing. User object keys:', Object.keys(user));
       console.error('User object:', JSON.stringify(user, null, 2));
       return res.status(500).json({ 
@@ -72,8 +78,8 @@ exports.loginUser = (req, res) => {
 
     const token = jwt.sign(
       { 
-        id: user.id,
-        user_id: user.id,
+        id: userId,
+        user_id: userId,
         email: user.email
       },
       config.JWT_SECRET,
@@ -84,7 +90,7 @@ exports.loginUser = (req, res) => {
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        id: userId,
         name: user.name,
         email: user.email,
       },
