@@ -33,10 +33,19 @@ exports.trainModel = async (req, res) => {
 
     // Fetch user's transactions from database
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
       LIMIT 1000
     `;
     
@@ -113,10 +122,19 @@ exports.getOrTrainPredictions = async (req, res) => {
 
     // Fetch user's transactions
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
       LIMIT 1000
     `;
     
@@ -229,10 +247,19 @@ exports.getUserInsights = async (req, res) => {
 
     // Fetch user's transactions
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
       LIMIT 1000
     `;
     
