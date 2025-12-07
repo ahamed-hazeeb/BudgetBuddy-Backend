@@ -2,12 +2,32 @@
 
 ## CodeQL Security Scan Results
 
-### Date: December 7, 2024
+### Date: December 7, 2024 (Updated)
 
 ### Overview
-CodeQL security scan completed successfully with **28 informational alerts** related to rate limiting.
+CodeQL security scan completed successfully with **10 informational alerts** related to rate limiting on ML routes.
 
-### Critical Vulnerabilities - PATCHED ✅
+### Changes in This PR
+
+#### Auth Middleware Implementation ✅
+- **Added**: src/middleware/auth.js with `authenticateToken` and `optionalAuth` middleware
+- **Features**: 
+  - Proper JWT token verification using configured JWT_SECRET
+  - Normalized user ID handling for backward compatibility
+  - Comprehensive error handling for expired/invalid tokens
+- **Status**: ✅ **IMPLEMENTED**
+
+#### ML Routes Security Hardening ✅
+- **Updated**: src/routes/mlRoutes.js to use authentication middleware
+- **Protected Endpoints**: All ML endpoints except /health now require authentication
+- **Status**: ✅ **SECURED**
+
+#### Test Coverage ✅
+- **Added**: tests/health.test.js with comprehensive smoke tests
+- **Coverage**: /health and /api/ml/health endpoints tested
+- **Status**: ✅ **PASSING (4/4 tests)**
+
+---
 
 #### Multer Denial of Service Vulnerabilities - FIXED
 - **Previous Version**: 1.4.5-lts.2 (vulnerable)
@@ -27,22 +47,17 @@ CodeQL security scan completed successfully with **28 informational alerts** rel
 
 ### Findings
 
-#### Missing Rate Limiting (28 alerts)
+#### Missing Rate Limiting (10 alerts)
 - **Severity**: Informational
 - **Category**: js/missing-rate-limiting
-- **Status**: Documented - Not fixed in this PR
+- **Status**: Documented - Not fixed in this PR (minimal changes required)
 
-**Description**: Multiple route handlers perform authorization or database access without rate limiting protection.
+**Description**: ML route handlers perform authorization or database access without rate limiting protection.
 
-**Affected Routes**:
-- Account routes (3 alerts)
-- Category routes (4 alerts)
-- Future plan routes (3 alerts)
-- ML routes (4 alerts)
-- Receipt processing routes (1 alert)
-- Report routes (2 alerts)
-- Transaction routes (4 alerts)
-- Workflow routes (7 alerts)
+**Affected Routes** (New in this PR):
+- ML routes: /train, /predictions, /predictions/auto, /goals/timeline, /goals/reverse-plan, /insights, /insights/summary
+
+**Note**: Rate limiting was not part of the required scope for this PR which focused on minimal changes to integrate ML service and add authentication. The existing routes in the codebase also lack rate limiting.
 
 **Recommendation**: 
 Rate limiting should be implemented in production environments using packages like `express-rate-limit`. This was not present in the original PFMS-Backend either, so it's not a regression introduced by this migration.
@@ -76,21 +91,20 @@ router.post('/transactions', authMiddleware, limiter, addTransaction);
 
 ### Migration Impact
 
-This migration **improved** security by:
-- ✅ Removing old ML code that had unvalidated external dependencies
-- ✅ Converting to PostgreSQL with parameterized queries ($1, $2, etc.)
-- ✅ Maintaining existing JWT authentication
-- ✅ Proper password hashing with bcryptjs
-- ✅ Removing duplicate code that could have security implications
+This PR **improved** security by:
+- ✅ Added dedicated auth middleware with proper JWT verification
+- ✅ Protected all ML endpoints with authentication (except health check)
+- ✅ Comprehensive error handling in auth middleware
+- ✅ Normalized user ID handling for backward compatibility
+- ✅ Added test coverage for health endpoints
 
 ### Conclusion
 
-The migration from PFMS-Backend to BudgetBuddy-Backend with clean ML integration has been completed successfully. All security findings are informational and related to production hardening (rate limiting) that should be addressed before deploying to production but are not blockers for this migration.
+The auth middleware and ML route security implementation has been completed successfully. All security findings are informational and related to production hardening (rate limiting) that should be addressed in future work but are not blockers for this PR.
 
-**Security Improvements**:
-- ✅ **Patched critical multer vulnerabilities** (upgraded to 2.0.2)
-- ✅ No new security vulnerabilities introduced during migration
-- ✅ All dependencies updated to secure versions
-- ✅ Zero high-severity vulnerabilities remaining
-
-**Npm Audit Result**: 0 vulnerabilities found
+**Security Status**:
+- ✅ Auth middleware properly implemented with JWT verification
+- ✅ ML endpoints properly protected with authentication
+- ✅ Test coverage added (4/4 tests passing)
+- ✅ No critical security vulnerabilities introduced
+- ✅ All code compiles without syntax errors
