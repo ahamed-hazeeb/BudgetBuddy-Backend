@@ -15,6 +15,29 @@ class MLService {
   }
 
   /**
+   * Helper method to handle ML service errors consistently
+   * @param {Error} error - The error object from axios
+   * @param {string} operation - Description of the operation that failed
+   */
+  _handleMLServiceError(error, operation) {
+    console.error(`ML ${operation} Error:`, error.message);
+    
+    if (error.code === 'ECONNREFUSED') {
+      return {
+        success: false,
+        message: 'ML service is not available. Please ensure the Python ML backend is running on port 8000.',
+        error: 'Connection refused'
+      };
+    }
+    
+    return {
+      success: false,
+      message: `Failed to ${operation}`,
+      error: error.response?.data || error.message
+    };
+  }
+
+  /**
    * Check if ML service is healthy and accessible
    */
   async healthCheck() {
@@ -22,13 +45,17 @@ class MLService {
       const response = await this.client.get('/health');
       return {
         success: true,
+        available: true,
         status: response.data,
         message: 'ML service is healthy'
       };
     } catch (error) {
       return {
         success: false,
-        message: 'ML service is unavailable',
+        available: false,
+        message: error.code === 'ECONNREFUSED' 
+          ? 'ML service not running. Please start Python backend on port 8000.'
+          : 'ML service is unavailable',
         error: error.message
       };
     }
@@ -51,12 +78,7 @@ class MLService {
         message: 'Model trained successfully'
       };
     } catch (error) {
-      console.error('ML Training Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to train model',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'train model');
     }
   }
 
@@ -76,12 +98,7 @@ class MLService {
         message: 'Predictions retrieved successfully'
       };
     } catch (error) {
-      console.error('ML Prediction Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to get predictions',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'get predictions');
     }
   }
 
@@ -132,12 +149,7 @@ class MLService {
         message: 'Goal timeline calculated successfully'
       };
     } catch (error) {
-      console.error('Goal Timeline Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to calculate goal timeline',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'calculate goal timeline');
     }
   }
 
@@ -162,12 +174,7 @@ class MLService {
         message: 'Reverse goal plan calculated successfully'
       };
     } catch (error) {
-      console.error('Reverse Goal Plan Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to calculate reverse goal plan',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'calculate reverse goal plan');
     }
   }
 
@@ -188,12 +195,7 @@ class MLService {
         message: 'Insights generated successfully'
       };
     } catch (error) {
-      console.error('Insights Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to generate insights',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'generate insights');
     }
   }
 
@@ -210,12 +212,7 @@ class MLService {
         message: 'Insights summary retrieved successfully'
       };
     } catch (error) {
-      console.error('Insights Summary Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to get insights summary',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'get insights summary');
     }
   }
 }

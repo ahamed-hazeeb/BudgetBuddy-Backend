@@ -33,19 +33,33 @@ exports.trainModel = async (req, res) => {
 
     // Fetch user's transactions from database
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available for training'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to train the model!',
+          transactions: []
+        }
       });
     }
 
@@ -108,19 +122,33 @@ exports.getOrTrainPredictions = async (req, res) => {
 
     // Fetch user's transactions
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to get predictions!',
+          predictions: []
+        }
       });
     }
 
@@ -219,19 +247,34 @@ exports.getUserInsights = async (req, res) => {
 
     // Fetch user's transactions
     const query = `
-      SELECT id, user_id, amount, category, type, date, note
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY date DESC
+      SELECT 
+        t.id, 
+        t.user_id, 
+        t.amount, 
+        t.category_id,
+        c.name as category,
+        t.type, 
+        t.date, 
+        t.note
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
+      ORDER BY t.date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available for insights'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to get AI insights!',
+          predictions: [],
+          insights: []
+        }
       });
     }
 

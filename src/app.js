@@ -23,7 +23,28 @@ const mlRoutes = require('./routes/mlRoutes'); // NEW
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
+// CORS configuration - properly handle credentials with allowed origins
+const allowedOrigins = [
+  'http://localhost:3001',
+  'http://localhost:3000',
+  process.env.CORS_ORIGIN
+].filter(Boolean);
+
+app.use(cors({ 
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
