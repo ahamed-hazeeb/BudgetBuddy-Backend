@@ -10,6 +10,12 @@ exports.registerUser = async (req, res) => {
   userModel.createUser(name, email, hashedPassword, (err, user) => {
     if (err) return res.status(400).json({ error: err.message });
     
+    // Validate user.id exists before generating token
+    if (!user || !user.id) {
+      console.error('User created but ID is missing:', user);
+      return res.status(500).json({ error: 'User registration failed: user ID not returned' });
+    }
+    
     // Generate token with user ID for newly registered user
     const token = jwt.sign(
       { 
@@ -40,6 +46,12 @@ exports.loginUser = (req, res) => {
 
     const isValid = await bcryptjs.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // Validate user.id exists before generating token
+    if (!user.id) {
+      console.error('User found but ID is missing:', { email: user.email, hasId: !!user.id });
+      return res.status(500).json({ error: 'Login failed: user ID not found in database' });
+    }
 
     const token = jwt.sign(
       { 
