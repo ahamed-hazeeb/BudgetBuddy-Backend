@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="ExpenseTrackingWorkflow" targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="ExpenseTrackingProcess" isExecutable="true">
+    <startEvent id="StartEvent" />
+    <sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="InputDetails" />
+    <userTask id="InputDetails" name="Input Details" />
+    <sequenceFlow id="Flow2" sourceRef="InputDetails" targetRef="OCRDecision" />
+    <gateway id="OCRDecision" gatewayDirection="Diverging">
+      <sequenceFlow id="Flow3" sourceRef="OCRDecision" targetRef="OCRProcessing" conditionExpression="variables.useOCR" />
+      <sequenceFlow id="Flow4" sourceRef="OCRDecision" targetRef="Categorization" conditionExpression="!variables.useOCR" />
+    </gateway>
+    <serviceTask id="OCRProcessing" name="OCR Processing" implementation="processOCR" />
+    <sequenceFlow id="Flow5" sourceRef="OCRProcessing" targetRef="Categorization" />
+    <userTask id="Categorization" name="Categorize Transaction" />
+    <sequenceFlow id="Flow6" sourceRef="Categorization" targetRef="SaveTransaction" />
+    <serviceTask id="SaveTransaction" name="Save Transaction" implementation="saveTransactionToDb" />
+    <sequenceFlow id="Flow7" sourceRef="SaveTransaction" targetRef="EndEvent" />
+    <endEvent id="EndEvent" />
+  </process>
+</definitions>

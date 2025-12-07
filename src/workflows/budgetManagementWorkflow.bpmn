@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="BudgetManagementWorkflow" targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="BudgetManagementProcess" isExecutable="true">
+    <startEvent id="StartEvent" />
+    <sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="SelectBudgetType" />
+    <userTask id="SelectBudgetType" name="Select Budget Type" />
+    <sequenceFlow id="Flow2" sourceRef="SelectBudgetType" targetRef="AIRecommendation" />
+    <serviceTask id="AIRecommendation" name="AI Budget Recommendation" implementation="getBudgetRecommendation" />
+    <sequenceFlow id="Flow3" sourceRef="AIRecommendation" targetRef="ReviewAndConfirm" />
+    <userTask id="ReviewAndConfirm" name="Review and Confirm" />
+    <sequenceFlow id="Flow4" sourceRef="ReviewAndConfirm" targetRef="SaveBudget" />
+    <serviceTask id="SaveBudget" name="Save Budget" implementation="saveBudgetToDb" />
+    <sequenceFlow id="Flow5" sourceRef="SaveBudget" targetRef="EndEvent" />
+    <endEvent id="EndEvent" />
+  </process>
+</definitions>

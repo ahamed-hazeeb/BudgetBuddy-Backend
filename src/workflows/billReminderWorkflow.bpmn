@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="BillReminderWorkflow" targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="BillReminderProcess" isExecutable="true">
+    <startEvent id="StartEvent" name="Bill Due Date Approaches" />
+    <sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="CheckPaymentStatus" />
+    <serviceTask id="CheckPaymentStatus" name="Check Payment Status" implementation="checkBillStatus" />
+    <sequenceFlow id="Flow2" sourceRef="CheckPaymentStatus" targetRef="PaymentGateway" />
+    <gateway id="PaymentGateway" gatewayDirection="Diverging">
+      <sequenceFlow id="Flow3" sourceRef="PaymentGateway" targetRef="MarkAsPaid" conditionExpression="variables.isPaid" />
+      <sequenceFlow id="Flow4" sourceRef="PaymentGateway" targetRef="SendReminder" conditionExpression="!variables.isPaid" />
+    </gateway>
+    <serviceTask id="MarkAsPaid" name="Mark as Paid" implementation="markBillAsPaid" />
+    <sequenceFlow id="Flow5" sourceRef="MarkAsPaid" targetRef="EndEventPaid" />
+    <endEvent id="EndEventPaid" name="Status Updated" />
+    <serviceTask id="SendReminder" name="Send Reminder Notification" implementation="sendReminderNotification" />
+    <sequenceFlow id="Flow6" sourceRef="SendReminder" targetRef="EndEventReminder" />
+    <endEvent id="EndEventReminder" name="Reminder Sent" />
+  </process>
+</definitions>

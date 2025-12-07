@@ -1,0 +1,276 @@
+const mlService = require('../services/mlService');
+const db = require('../config/db');
+
+/**
+ * Check ML service health
+ */
+exports.healthCheck = async (req, res) => {
+  try {
+    const result = await mlService.healthCheck();
+    res.status(result.success ? 200 : 503).json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check ML service health',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Train ML model for authenticated user
+ */
+exports.trainModel = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.body.user_id;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    // Fetch user's transactions from database
+    const query = `
+      SELECT id, user_id, amount, category, type, date, note
+      FROM transactions
+      WHERE user_id = $1
+      ORDER BY date DESC
+    `;
+    
+    const result = await db.query(query, [userId]);
+    const transactions = result.rows;
+
+    if (transactions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No transaction data available for training'
+      });
+    }
+
+    // Train the model
+    const mlResult = await mlService.trainModel(userId, transactions);
+    
+    res.status(mlResult.success ? 200 : 500).json(mlResult);
+  } catch (error) {
+    console.error('Train Model Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to train model',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Get predictions for authenticated user
+ */
+exports.getPredictions = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+    const months = parseInt(req.query.months) || 6;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    const result = await mlService.getPredictions(userId, months);
+    
+    res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Get Predictions Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get predictions',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Get predictions with auto-training
+ */
+exports.getOrTrainPredictions = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+    const months = parseInt(req.query.months) || 6;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    // Fetch user's transactions
+    const query = `
+      SELECT id, user_id, amount, category, type, date, note
+      FROM transactions
+      WHERE user_id = $1
+      ORDER BY date DESC
+    `;
+    
+    const result = await db.query(query, [userId]);
+    const transactions = result.rows;
+
+    if (transactions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No transaction data available'
+      });
+    }
+
+    const mlResult = await mlService.getOrTrainPredictions(userId, transactions, months);
+    
+    res.status(mlResult.success ? 200 : 500).json(mlResult);
+  } catch (error) {
+    console.error('Get/Train Predictions Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get predictions',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Calculate goal timeline
+ */
+exports.calculateGoalTimeline = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.body.user_id;
+    const { target_amount, current_savings, monthly_savings } = req.body;
+    
+    if (!userId || !target_amount || current_savings === undefined || !monthly_savings) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: target_amount, current_savings, monthly_savings'
+      });
+    }
+
+    const result = await mlService.calculateGoalTimeline(
+      userId,
+      parseFloat(target_amount),
+      parseFloat(current_savings),
+      parseFloat(monthly_savings)
+    );
+    
+    res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Calculate Goal Timeline Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to calculate goal timeline',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Reverse plan a goal
+ */
+exports.reversePlanGoal = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.body.user_id;
+    const { target_amount, current_savings, target_date } = req.body;
+    
+    if (!userId || !target_amount || current_savings === undefined || !target_date) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: target_amount, current_savings, target_date'
+      });
+    }
+
+    const result = await mlService.reversePlanGoal(
+      userId,
+      parseFloat(target_amount),
+      parseFloat(current_savings),
+      target_date
+    );
+    
+    res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Reverse Plan Goal Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reverse plan goal',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Get user insights
+ */
+exports.getUserInsights = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    // Fetch user's transactions
+    const query = `
+      SELECT id, user_id, amount, category, type, date, note
+      FROM transactions
+      WHERE user_id = $1
+      ORDER BY date DESC
+    `;
+    
+    const result = await db.query(query, [userId]);
+    const transactions = result.rows;
+
+    if (transactions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No transaction data available for insights'
+      });
+    }
+
+    const mlResult = await mlService.getUserInsights(userId, transactions);
+    
+    res.status(mlResult.success ? 200 : 500).json(mlResult);
+  } catch (error) {
+    console.error('Get User Insights Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user insights',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Get insights summary
+ */
+exports.getInsightsSummary = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.query.user_id;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    const result = await mlService.getInsightsSummary(userId);
+    
+    res.status(result.success ? 200 : 500).json(result);
+  } catch (error) {
+    console.error('Get Insights Summary Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get insights summary',
+      message: error.message
+    });
+  }
+};
