@@ -20,14 +20,18 @@ const authenticateToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
     
-    console.log('Token decoded successfully. Payload:', JSON.stringify(decoded, null, 2));
+    if (config.NODE_ENV === 'development') {
+      console.log('Token decoded successfully. Payload:', JSON.stringify(decoded, null, 2));
+    }
     
     // Extract user ID from various possible fields
     // Supports: id, user_id, sub (standard JWT claim), or nested user.id
     const userId = decoded.id || decoded.user_id || decoded.sub || decoded.user?.id;
     
     if (!userId) {
-      console.error('User ID not found in token. Decoded payload:', decoded);
+      if (config.NODE_ENV === 'development') {
+        console.error('User ID not found in token. Decoded payload:', decoded);
+      }
       return res.status(401).json({
         success: false,
         error: 'Invalid token',
@@ -43,10 +47,14 @@ const authenticateToken = (req, res, next) => {
       raw: decoded  // Keep raw decoded token for debugging
     };
     
-    console.log('User authenticated successfully. User ID:', userId);
+    if (config.NODE_ENV === 'development') {
+      console.log('User authenticated successfully. User ID:', userId);
+    }
     next();
   } catch (error) {
-    console.error('JWT Verification Error:', error.message);
+    if (config.NODE_ENV === 'development') {
+      console.error('JWT Verification Error:', error.message);
+    }
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
@@ -80,7 +88,9 @@ const optionalAuth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
     
-    console.log('Optional auth: Token decoded successfully');
+    if (config.NODE_ENV === 'development') {
+      console.log('Optional auth: Token decoded successfully');
+    }
     
     // Extract user ID from various possible fields
     const userId = decoded.id || decoded.user_id || decoded.sub || decoded.user?.id;
@@ -93,13 +103,17 @@ const optionalAuth = (req, res, next) => {
         email: decoded.email || decoded.user?.email,
         raw: decoded
       };
-      console.log('Optional auth: User ID extracted:', userId);
-    } else {
+      if (config.NODE_ENV === 'development') {
+        console.log('Optional auth: User ID extracted:', userId);
+      }
+    } else if (config.NODE_ENV === 'development') {
       console.warn('Optional auth: Token present but no user ID found in payload');
     }
   } catch (error) {
     // Invalid token, but we don't fail - just continue without user info
-    console.warn('Optional auth: Invalid token provided:', error.message);
+    if (config.NODE_ENV === 'development') {
+      console.warn('Optional auth: Invalid token provided:', error.message);
+    }
   }
 
   next();
