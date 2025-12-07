@@ -149,12 +149,7 @@ class MLService {
         message: 'Goal timeline calculated successfully'
       };
     } catch (error) {
-      console.error('Goal Timeline Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to calculate goal timeline',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'calculate goal timeline');
     }
   }
 
@@ -179,12 +174,7 @@ class MLService {
         message: 'Reverse goal plan calculated successfully'
       };
     } catch (error) {
-      console.error('Reverse Goal Plan Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to calculate reverse goal plan',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'calculate reverse goal plan');
     }
   }
 
@@ -222,12 +212,7 @@ class MLService {
         message: 'Insights summary retrieved successfully'
       };
     } catch (error) {
-      console.error('Insights Summary Error:', error.message);
-      return {
-        success: false,
-        message: 'Failed to get insights summary',
-        error: error.response?.data || error.message
-      };
+      return this._handleMLServiceError(error, 'get insights summary');
     }
   }
 }
