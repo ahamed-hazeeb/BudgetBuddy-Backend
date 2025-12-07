@@ -20,8 +20,8 @@ pool.on('connect', () => {
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle PostgreSQL client:', err);
   // Don't exit immediately - log and attempt recovery
-  // Only exit for critical errors
-  if (err.code === 'ECONNREFUSED' || err.code === 'PROTOCOL_CONNECTION_LOST') {
+  // Only exit for critical errors specific to PostgreSQL
+  if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT') {
     console.error('🔥 Critical database error. Server may need restart.');
     // Optionally: implement reconnection logic or alert system
   }
