@@ -37,15 +37,20 @@ exports.trainModel = async (req, res) => {
       FROM transactions
       WHERE user_id = $1
       ORDER BY date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available for training'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to train the model!',
+          transactions: []
+        }
       });
     }
 
@@ -112,15 +117,20 @@ exports.getOrTrainPredictions = async (req, res) => {
       FROM transactions
       WHERE user_id = $1
       ORDER BY date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to get predictions!',
+          predictions: []
+        }
       });
     }
 
@@ -223,15 +233,21 @@ exports.getUserInsights = async (req, res) => {
       FROM transactions
       WHERE user_id = $1
       ORDER BY date DESC
+      LIMIT 1000
     `;
     
     const result = await db.query(query, [userId]);
     const transactions = result.rows;
 
     if (transactions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'No transaction data available for insights'
+      return res.status(200).json({
+        success: true,
+        data: {
+          has_data: false,
+          message: 'No transaction data available yet. Start adding transactions to get AI insights!',
+          predictions: [],
+          insights: []
+        }
       });
     }
 

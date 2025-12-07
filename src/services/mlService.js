@@ -22,13 +22,17 @@ class MLService {
       const response = await this.client.get('/health');
       return {
         success: true,
+        available: true,
         status: response.data,
         message: 'ML service is healthy'
       };
     } catch (error) {
       return {
         success: false,
-        message: 'ML service is unavailable',
+        available: false,
+        message: error.code === 'ECONNREFUSED' 
+          ? 'ML service not running. Please start Python backend on port 8000.'
+          : 'ML service is unavailable',
         error: error.message
       };
     }
@@ -52,6 +56,15 @@ class MLService {
       };
     } catch (error) {
       console.error('ML Training Error:', error.message);
+      
+      if (error.code === 'ECONNREFUSED') {
+        return {
+          success: false,
+          message: 'ML service is not available. Please ensure the Python ML backend is running on port 8000.',
+          error: 'Connection refused'
+        };
+      }
+      
       return {
         success: false,
         message: 'Failed to train model',
@@ -77,6 +90,15 @@ class MLService {
       };
     } catch (error) {
       console.error('ML Prediction Error:', error.message);
+      
+      if (error.code === 'ECONNREFUSED') {
+        return {
+          success: false,
+          message: 'ML service is not available. Please ensure the Python ML backend is running on port 8000.',
+          error: 'Connection refused'
+        };
+      }
+      
       return {
         success: false,
         message: 'Failed to get predictions',
@@ -189,6 +211,15 @@ class MLService {
       };
     } catch (error) {
       console.error('Insights Error:', error.message);
+      
+      if (error.code === 'ECONNREFUSED') {
+        return {
+          success: false,
+          message: 'ML service is not available. Please ensure the Python ML backend is running on port 8000.',
+          error: 'Connection refused'
+        };
+      }
+      
       return {
         success: false,
         message: 'Failed to generate insights',
