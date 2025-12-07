@@ -73,4 +73,3 @@ exports.deleteCategory = (req, res) => {
     res.json(result);
   });
 };
-};

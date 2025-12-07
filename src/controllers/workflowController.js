@@ -7,6 +7,8 @@ const path = require('path'); // Import the path module
 const transactionModel = require('../models/transactionModel');
 const budgetModel = require('../models/budgetModel');
 const billModel = require('../models/billModel');
+const goalModel = require('../models/goalModel');
+const db = require('../config/db');
 // Model removed - ML functionality now available via mlService
 
 // Expense Tracking Workflow
@@ -66,7 +68,7 @@ exports.runBudgetManagementWorkflow = async (req, res) => {
         saveBudgetToDb: (context, next) => {
           const vars = context.variables;
           const finalAmount = vars.amount || vars.recommendedBudget;
-          budgetModel.addBudget(vars.userId, vars.category_id, finalAmount, vars.start_date, vars.end_date,
+          budgetModel.setOverallBudget(vars.userId, finalAmount, vars.start_date, vars.end_date,
             (err, budget) => next(err, budget));
         }
       }
@@ -101,7 +103,8 @@ exports.runBillReminderWorkflow = async (req, res) => {
           });
         },
         markBillAsPaid: (context, next) => {
-          db.run('UPDATE bills SET status = "paid" WHERE id = ?', [bill_id], err => next(err));
+          const query = 'UPDATE bills SET status = $1 WHERE id = $2';
+          db.query(query, ['paid', bill_id], (err) => next(err));
         },
         sendReminderNotification: (context, next) => {
           // Placeholder: Integrate SMS/email (e.g., Twilio)

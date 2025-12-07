@@ -1,10 +1,10 @@
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 
 exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcryptjs.hash(password, 10);
 
   userModel.createUser(name, email, hashedPassword, (err, user) => {
     if (err) return res.status(400).json({ error: err.message });
@@ -17,7 +17,7 @@ exports.loginUser = (req, res) => {
   userModel.findUserByEmail(email, async (err, user) => {
     if (err || !user) return res.status(404).json({ error: 'User not found' });
 
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcryptjs.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
