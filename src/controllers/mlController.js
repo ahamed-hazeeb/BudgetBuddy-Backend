@@ -2,6 +2,22 @@ const mlService = require('../services/mlService');
 const db = require('../config/db');
 
 /**
+ * Transform database transaction rows to match ML backend schema
+ * @param {Array} transactions - Raw transaction rows from database
+ * @returns {Array} - Transformed transactions matching ML schema
+ */
+const transformTransactionsForML = (transactions) => {
+  return transactions.map(txn => ({
+    id: txn.id,
+    amount: parseFloat(txn.amount),
+    category: txn.category || 'Uncategorized',
+    type: txn.type,
+    date: txn.date,
+    note: txn.note || ''
+  }));
+};
+
+/**
  * Check ML service health
  */
 exports.healthCheck = async (req, res) => {
@@ -62,14 +78,7 @@ exports.trainModel = async (req, res) => {
     }
 
     // Transform transactions to match ML backend schema
-    const transformedTransactions = transactions.map(txn => ({
-      id: txn.id,
-      amount: parseFloat(txn.amount),
-      category: txn.category || 'Uncategorized',
-      type: txn.type,
-      date: txn.date,
-      note: txn.note || ''
-    }));
+    const transformedTransactions = transformTransactionsForML(transactions);
 
     console.log(`Training model with ${transformedTransactions.length} transactions for user ${userId}`);
     
@@ -161,14 +170,7 @@ exports.getOrTrainPredictions = async (req, res) => {
     }
 
     // Transform transactions to match ML backend schema
-    const transformedTransactions = transactions.map(txn => ({
-      id: txn.id,
-      amount: parseFloat(txn.amount),
-      category: txn.category || 'Uncategorized',
-      type: txn.type,
-      date: txn.date,
-      note: txn.note || ''
-    }));
+    const transformedTransactions = transformTransactionsForML(transactions);
 
     console.log(`Getting predictions with ${transformedTransactions.length} transactions for user ${userId}`);
     
@@ -297,14 +299,7 @@ exports.getUserInsights = async (req, res) => {
     }
 
     // Transform transactions to match ML backend schema
-    const transformedTransactions = transactions.map(txn => ({
-      id: txn.id,
-      amount: parseFloat(txn.amount),           // Ensure it's a float
-      category: txn.category || 'Uncategorized', // Use category name, not ID
-      type: txn.type,                            // "income" or "expense"
-      date: txn.date,                            // YYYY-MM-DD format
-      note: txn.note || ''                       // Default to empty string
-    }));
+    const transformedTransactions = transformTransactionsForML(transactions);
 
     console.log(`Sending ${transformedTransactions.length} transactions to ML service for user ${userId}`);
     
