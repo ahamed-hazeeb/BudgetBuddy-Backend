@@ -35,9 +35,7 @@ exports.trainModel = async (req, res) => {
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -63,8 +61,20 @@ exports.trainModel = async (req, res) => {
       });
     }
 
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transactions.map(txn => ({
+      id: txn.id,
+      amount: parseFloat(txn.amount),
+      category: txn.category || 'Uncategorized',
+      type: txn.type,
+      date: txn.date,
+      note: txn.note || ''
+    }));
+
+    console.log(`Training model with ${transformedTransactions.length} transactions for user ${userId}`);
+    
     // Train the model
-    const mlResult = await mlService.trainModel(userId, transactions);
+    const mlResult = await mlService.trainModel(userId, transformedTransactions);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {
@@ -124,9 +134,7 @@ exports.getOrTrainPredictions = async (req, res) => {
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -152,7 +160,19 @@ exports.getOrTrainPredictions = async (req, res) => {
       });
     }
 
-    const mlResult = await mlService.getOrTrainPredictions(userId, transactions, months);
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transactions.map(txn => ({
+      id: txn.id,
+      amount: parseFloat(txn.amount),
+      category: txn.category || 'Uncategorized',
+      type: txn.type,
+      date: txn.date,
+      note: txn.note || ''
+    }));
+
+    console.log(`Getting predictions with ${transformedTransactions.length} transactions for user ${userId}`);
+    
+    const mlResult = await mlService.getOrTrainPredictions(userId, transformedTransactions, months);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {
@@ -245,13 +265,11 @@ exports.getUserInsights = async (req, res) => {
       });
     }
 
-    // Fetch user's transactions
+    // Fetch user's transactions with category names
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -278,7 +296,19 @@ exports.getUserInsights = async (req, res) => {
       });
     }
 
-    const mlResult = await mlService.getUserInsights(userId, transactions);
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transactions.map(txn => ({
+      id: txn.id,
+      amount: parseFloat(txn.amount),           // Ensure it's a float
+      category: txn.category || 'Uncategorized', // Use category name, not ID
+      type: txn.type,                            // "income" or "expense"
+      date: txn.date,                            // YYYY-MM-DD format
+      note: txn.note || ''                       // Default to empty string
+    }));
+
+    console.log(`Sending ${transformedTransactions.length} transactions to ML service for user ${userId}`);
+    
+    const mlResult = await mlService.getUserInsights(userId, transformedTransactions);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {
