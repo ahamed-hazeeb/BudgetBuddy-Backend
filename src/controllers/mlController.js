@@ -2,6 +2,22 @@ const mlService = require('../services/mlService');
 const db = require('../config/db');
 
 /**
+ * Transform database transaction rows to match ML backend schema
+ * @param {Array} transactions - Raw transaction rows from database
+ * @returns {Array} - Transformed transactions matching ML schema
+ */
+const transformTransactionsForML = (transactions) => {
+  return transactions.map(txn => ({
+    id: txn.id,
+    amount: parseFloat(txn.amount),
+    category: txn.category || 'Uncategorized',
+    type: txn.type,
+    date: txn.date,
+    note: txn.note || ''
+  }));
+};
+
+/**
  * Check ML service health
  */
 exports.healthCheck = async (req, res) => {
@@ -35,9 +51,7 @@ exports.trainModel = async (req, res) => {
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -63,8 +77,13 @@ exports.trainModel = async (req, res) => {
       });
     }
 
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transformTransactionsForML(transactions);
+
+    console.log(`Training model with ${transformedTransactions.length} transactions for user ${userId}`);
+    
     // Train the model
-    const mlResult = await mlService.trainModel(userId, transactions);
+    const mlResult = await mlService.trainModel(userId, transformedTransactions);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {
@@ -124,9 +143,7 @@ exports.getOrTrainPredictions = async (req, res) => {
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -152,7 +169,12 @@ exports.getOrTrainPredictions = async (req, res) => {
       });
     }
 
-    const mlResult = await mlService.getOrTrainPredictions(userId, transactions, months);
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transformTransactionsForML(transactions);
+
+    console.log(`Getting predictions with ${transformedTransactions.length} transactions for user ${userId}`);
+    
+    const mlResult = await mlService.getOrTrainPredictions(userId, transformedTransactions, months);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {
@@ -245,13 +267,11 @@ exports.getUserInsights = async (req, res) => {
       });
     }
 
-    // Fetch user's transactions
+    // Fetch user's transactions with category names
     const query = `
       SELECT 
         t.id, 
-        t.user_id, 
         t.amount, 
-        t.category_id,
         c.name as category,
         t.type, 
         t.date, 
@@ -278,7 +298,12 @@ exports.getUserInsights = async (req, res) => {
       });
     }
 
-    const mlResult = await mlService.getUserInsights(userId, transactions);
+    // Transform transactions to match ML backend schema
+    const transformedTransactions = transformTransactionsForML(transactions);
+
+    console.log(`Sending ${transformedTransactions.length} transactions to ML service for user ${userId}`);
+    
+    const mlResult = await mlService.getUserInsights(userId, transformedTransactions);
     
     res.status(mlResult.success ? 200 : 500).json(mlResult);
   } catch (error) {

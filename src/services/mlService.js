@@ -20,21 +20,38 @@ class MLService {
    * @param {string} operation - Description of the operation that failed
    */
   _handleMLServiceError(error, operation) {
-    console.error(`ML ${operation} Error:`, error.message);
-    
-    if (error.code === 'ECONNREFUSED') {
+    if (error.response) {
+      // ML service responded with error
+      console.error(`ML Service Error (${operation}):`, {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config?.url
+      });
+      
       return {
         success: false,
-        message: 'ML service is not available. Please ensure the Python ML backend is running on port 8000.',
-        error: 'Connection refused'
+        message: `Failed to ${operation}`,
+        error: `ML service error: ${error.response.data.detail || error.message}`,
+        status: error.response.status
+      };
+    } else if (error.request) {
+      // No response from ML service
+      console.error(`ML Service Not Responding (${operation}):`, error.message);
+      return {
+        success: false,
+        message: `Failed to ${operation}`,
+        error: 'ML service is not available. Please ensure it is running on port 8000.',
+        available: false
+      };
+    } else {
+      // Request setup error
+      console.error(`ML Service Request Error (${operation}):`, error.message);
+      return {
+        success: false,
+        message: `Failed to ${operation}`,
+        error: error.message
       };
     }
-    
-    return {
-      success: false,
-      message: `Failed to ${operation}`,
-      error: error.response?.data || error.message
-    };
   }
 
   /**
@@ -54,7 +71,7 @@ class MLService {
         success: false,
         available: false,
         message: error.code === 'ECONNREFUSED' 
-          ? 'ML service not running. Please start Python backend on port 8000.'
+          ? 'ML service is unavailable. Please start Python backend on port 8000.'
           : 'ML service is unavailable',
         error: error.message
       };
