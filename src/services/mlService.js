@@ -232,6 +232,245 @@ class MLService {
       return this._handleMLServiceError(error, 'get insights summary');
     }
   }
+
+  /**
+   * Get advanced expense forecast using Holt-Winters/ARIMA
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   * @param {number} months - Number of months to forecast
+   */
+  async getAdvancedExpenseForecast(userId, transactions, months = 6) {
+    try {
+      const response = await this.client.post('/api/v1/predictions/expense/advanced', {
+        user_id: userId,
+        transactions: transactions,
+        months: months
+      }, { timeout: 10000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Advanced expense forecast generated successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get advanced expense forecast');
+    }
+  }
+
+  /**
+   * Get financial health score (0-100) with grade
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   */
+  async getHealthScore(userId, transactions) {
+    try {
+      const response = await this.client.post('/api/v1/insights/health-score', {
+        user_id: userId,
+        transactions: transactions
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Health score calculated successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get health score');
+    }
+  }
+
+  /**
+   * Get health score trends over time
+   * @param {number} userId - User ID
+   */
+  async getHealthTrends(userId) {
+    try {
+      const response = await this.client.get(`/api/v1/insights/trends/${userId}`, {
+        timeout: 5000
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Health trends retrieved successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get health trends');
+    }
+  }
+
+  /**
+   * Get peer benchmark comparison
+   * @param {number} userId - User ID
+   * @param {string} ageGroup - Age group (e.g., '25-34')
+   * @param {string} incomeBracket - Income bracket (e.g., '50k-75k')
+   */
+  async getBenchmark(userId, ageGroup, incomeBracket) {
+    try {
+      const params = {};
+      if (ageGroup) params.age_group = ageGroup;
+      if (incomeBracket) params.income_bracket = incomeBracket;
+      
+      const response = await this.client.get(`/api/v1/insights/benchmark/${userId}`, {
+        params: params,
+        timeout: 5000
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Benchmark data retrieved successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get benchmark');
+    }
+  }
+
+  /**
+   * Get AI budget recommendations (50/30/20 rule)
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   * @param {number} totalBudget - Total monthly budget
+   */
+  async getBudgetRecommendations(userId, transactions, totalBudget) {
+    try {
+      const response = await this.client.post('/api/v1/budget/recommend', {
+        user_id: userId,
+        transactions: transactions,
+        total_budget: totalBudget
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Budget recommendations generated successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get budget recommendations');
+    }
+  }
+
+  /**
+   * Get budget alerts for overspending
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   * @param {Array} budgets - Current budget data
+   */
+  async getBudgetAlerts(userId, transactions, budgets) {
+    try {
+      const response = await this.client.post('/api/v1/budget/alerts', {
+        user_id: userId,
+        transactions: transactions,
+        budgets: budgets
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Budget alerts retrieved successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get budget alerts');
+    }
+  }
+
+  /**
+   * Optimize budget allocation
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   * @param {Object} currentBudget - Current budget allocation
+   */
+  async optimizeBudget(userId, transactions, currentBudget) {
+    try {
+      const response = await this.client.post('/api/v1/budget/optimize', {
+        user_id: userId,
+        transactions: transactions,
+        current_budget: currentBudget
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Budget optimized successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'optimize budget');
+    }
+  }
+
+  /**
+   * Get spending habits analysis
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   */
+  async getSpendingHabits(userId, transactions) {
+    try {
+      const response = await this.client.post(`/api/v1/recommendations/habits/${userId}`, {
+        transactions: transactions
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Spending habits analyzed successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get spending habits');
+    }
+  }
+
+  /**
+   * Get savings opportunities
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   */
+  async getSavingsOpportunities(userId, transactions) {
+    try {
+      const response = await this.client.post(`/api/v1/recommendations/opportunities/${userId}`, {
+        transactions: transactions
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Savings opportunities identified successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get savings opportunities');
+    }
+  }
+
+  /**
+   * Get behavior nudges for motivation
+   * @param {number} userId - User ID
+   * @param {Array} transactions - Transaction data
+   * @param {Array} goals - User financial goals
+   */
+  async getBehaviorNudges(userId, transactions, goals) {
+    try {
+      const response = await this.client.post(`/api/v1/recommendations/nudges/${userId}`, {
+        transactions: transactions,
+        goals: goals
+      }, { timeout: 5000 });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Behavior nudges generated successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get behavior nudges');
+    }
+  }
+
+  /**
+   * Get ML model performance metrics
+   * @param {number} userId - User ID
+   */
+  async getModelPerformance(userId) {
+    try {
+      const response = await this.client.get(`/api/v1/models/performance/${userId}`, {
+        timeout: 5000
+      });
+      return {
+        success: true,
+        data: response.data,
+        message: 'Model performance retrieved successfully'
+      };
+    } catch (error) {
+      return this._handleMLServiceError(error, 'get model performance');
+    }
+  }
 }
 
 // Export singleton instance
